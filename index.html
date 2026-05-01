@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Phrase Trainer" />
+  <title>English Phrase Trainer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --card: #14141c;
+      --inner: #1a1a26;
+      --border: #2a2a3a;
+      --text: #e8e4d9;
+      --muted: #5a5a6a;
+      --dim: #3a3a4a;
+      --gold: #c9a84c;
+      --blue: #7c9ec9;
+      --green: #4caf50;
+      --red: #e57373;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 60px;
+    }
+
+    input, select, button { font-family: Georgia, serif; }
+    input::placeholder { color: var(--dim); }
+
+    .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 540px; }
+    .header-label { font-size: 10px; letter-spacing: 6px; color: #2a2a3a; text-transform: uppercase; margin-bottom: 6px; }
+    .header h1 { font-size: 26px; font-weight: 400; letter-spacing: 1px; margin-bottom: 6px; }
+    .voice-info { font-size: 10px; color: var(--dim); letter-spacing: 1px; }
+    .voice-enhanced { color: var(--green); margin-left: 6px; }
+    .streak { margin-top: 8px; font-size: 12px; color: var(--gold); }
+
+    .ios-tip {
+      max-width: 540px; width: 100%; margin-bottom: 14px;
+      padding: 10px 16px; background: #1a1a20;
+      border: 1px solid var(--border); border-radius: 10px;
+      font-size: 11px; color: var(--muted); line-height: 1.6;
+    }
+
+    .tabs {
+      display: flex; gap: 2px; margin-bottom: 18px;
+      background: var(--card); border-radius: 8px; padding: 3px;
+      max-width: 540px; width: 100%;
+    }
+    .tab {
+      flex: 1; padding: 9px 0; border: none; border-radius: 6px;
+      cursor: pointer; background: transparent; color: var(--muted);
+      font-size: 12px; transition: all 0.2s;
+    }
+    .tab.active { background: var(--gold); color: #0a0a0f; font-weight: 700; }
+
+    .filters {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 16px;
+      max-width: 540px; width: 100%;
+    }
+    .filter-btn {
+      padding: 4px 12px; border-radius: 20px;
+      cursor: pointer; font-size: 11px; letter-spacing: 1px;
+      background: transparent; transition: all 0.2s;
+    }
+
+    .card {
+      width: 100%; max-width: 540px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px 24px; margin-bottom: 16px;
+    }
+
+    .progress-row {
+      display: flex; justify-content: space-between;
+      margin-bottom: 10px; font-size: 11px;
+    }
+    .progress-bar-bg {
+      height: 2px; background: var(--inner);
+      border-radius: 1px; margin-bottom: 26px;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 1px;
+      transition: width 0.4s ease;
+    }
+
+    .phrase-center { text-align: center; margin-bottom: 24px; }
+    .phrase-cat { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+    .phrase-text { font-size: 36px; font-weight: 400; color: #f0ece0; letter-spacing: 1px; }
+
+    .audio-bars {
+      height: 28px; display: flex; justify-content: center;
+      align-items: flex-end; gap: 3px; margin-top: 14px;
+    }
+    .bar {
+      width: 3px; border-radius: 2px;
+      animation: barAnim 0.6s ease-in-out infinite alternate;
+    }
+    .bar-dots { font-size: 11px; color: #2a2a3a; letter-spacing: 3px; line-height: 28px; }
+
+    @keyframes barAnim { 0% { transform: scaleY(0.3); } 100% { transform: scaleY(1.1); } }
+
+    .example-box {
+      padding: 16px 20px; background: var(--inner);
+      border-radius: 10px; font-size: 15px;
+      line-height: 1.8; color: #a8a4a0; font-style: italic;
+      margin-top: 4px;
+    }
+    .example-box mark {
+      font-style: normal; border-radius: 3px; padding: 1px 3px;
+    }
+
+    .autoplay-btn {
+      display: block; margin: 16px auto 0;
+      font-size: 11px; background: none; border: none;
+      cursor: pointer; letter-spacing: 1px;
+    }
+
+    .quiz-hint {
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 14px; text-align: center; letter-spacing: 1px;
+    }
+    .quiz-sentence {
+      font-size: 17px; color: #d8d4c8; line-height: 1.9;
+      font-style: italic; padding: 16px 20px;
+      background: var(--inner); border-radius: 10px;
+      margin-bottom: 20px; text-align: center;
+    }
+    .quiz-input-row { display: flex; gap: 8px; }
+    .quiz-input {
+      flex: 1; padding: 12px 16px; background: var(--inner);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 15px; outline: none;
+    }
+    .quiz-submit {
+      padding: 12px 20px; border: none; border-radius: 8px;
+      color: #0a0a0f; cursor: pointer; font-weight: 700; font-size: 15px;
+    }
+    .quiz-result {
+      padding: 18px; border-radius: 10px; text-align: center;
+    }
+    .quiz-result-title { font-size: 22px; margin-bottom: 8px; }
+    .quiz-result-answer { font-size: 14px; color: #8a8a94; }
+
+    .nav { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+    .nav-btn {
+      padding: 10px 16px; background: transparent;
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--muted); cursor: pointer; font-size: 13px;
+      transition: all 0.2s;
+    }
+    .nav-btn:active { opacity: 0.7; }
+
+    .manage-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 24px; margin-bottom: 14px;
+      width: 100%; max-width: 540px;
+    }
+    .manage-label {
+      font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .csv-format {
+      font-size: 12px; color: var(--dim); margin-bottom: 12px; line-height: 1.7;
+    }
+    .csv-code {
+      background: var(--inner); padding: 2px 6px;
+      border-radius: 4px; color: var(--blue);
+    }
+    .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .secondary-btn {
+      flex: 1; padding: 10px; background: var(--inner);
+      border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; font-size: 13px; transition: all 0.2s;
+    }
+    .csv-msg { font-size: 12px; margin-top: 4px; }
+
+    .manage-input {
+      width: 100%; padding: 10px 14px; background: var(--inner);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 14px; outline: none;
+      margin-bottom: 8px;
+    }
+    .manage-select {
+      width: 100%; padding: 10px 14px; background: var(--inner);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: #8a8a94; font-size: 14px; margin-bottom: 10px;
+    }
+    .primary-btn {
+      width: 100%; padding: 12px; background: var(--gold);
+      border: none; border-radius: 8px; color: #0a0a0f;
+      cursor: pointer; font-weight: 700; font-size: 14px;
+    }
+
+    .list-label {
+      font-size: 10px; color: #2a2a3a; letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 10px;
+      width: 100%; max-width: 540px;
+    }
+    .phrase-list { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 540px; }
+    .phrase-item {
+      background: var(--card); border: 1px solid #1e1e2c;
+      border-radius: 10px; padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .phrase-item-name { font-size: 15px; margin-right: 8px; }
+    .phrase-item-meta { font-size: 11px; color: #2a2a3a; }
+    .delete-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--dim);
+      cursor: pointer; padding: 3px 8px; font-size: 12px;
+    }
+
+    .footer { font-size: 10px; color: #1e1e2c; margin-top: 24px; letter-spacing: 2px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">English Phrase Trainer</div>
+  <h1>Präpositionen &amp; Adverbien</h1>
+  <div class="voice-info" id="voiceInfo"></div>
+  <div class="streak" id="streakInfo"></div>
+</div>
+
+<div class="ios-tip" id="iosTip" style="display:none">
+  💡 <strong style="color:#8a8a94">Bessere Stimme:</strong>
+  Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Englisch →
+  <em>Daniel (Enhanced)</em> herunterladen
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="setMode('learn')">🎧 Lernen</button>
+  <button class="tab" onclick="setMode('quiz')">✏️ Quiz</button>
+  <button class="tab" onclick="setMode('manage')">📋 Phrasen</button>
+</div>
+
+<div class="filters" id="filters"></div>
+
+<!-- LEARN CARD -->
+<div class="card" id="learnCard">
+  <div class="progress-row">
+    <span id="learnProgress" style="font-size:11px;color:#3a3a4a;letter-spacing:2px"></span>
+    <span id="learnType" style="font-size:11px;letter-spacing:1px;text-transform:uppercase"></span>
+  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="learnBar"></div></div>
+  <div class="phrase-center">
+    <div class="phrase-cat" id="learnCat"></div>
+    <div class="phrase-text" id="learnPhrase"></div>
+    <div class="audio-bars" id="audioBars">
+      <span class="bar-dots">· · ·</span>
+    </div>
+  </div>
+  <div id="exampleBox" style="display:none" class="example-box"></div>
+  <button class="autoplay-btn" id="autoPlayBtn" onclick="toggleAutoPlay()"></button>
+</div>
+
+<!-- QUIZ CARD -->
+<div class="card" id="quizCard" style="display:none">
+  <div class="progress-row">
+    <span id="quizProgress" style="font-size:11px;color:#3a3a4a;letter-spacing:2px"></span>
+    <span id="quizScore" style="font-size:11px"></span>
+  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="quizBar"></div></div>
+  <div class="quiz-hint">Ergänze die fehlende Phrase:</div>
+  <div class="quiz-sentence" id="quizSentence"></div>
+  <div class="quiz-input-row" id="quizInputRow">
+    <input class="quiz-input" id="quizInput" placeholder="Deine Antwort..."
+      onkeydown="if(event.key==='Enter') checkQuiz()" />
+    <button class="quiz-submit" id="quizSubmit" onclick="checkQuiz()">✓</button>
+  </div>
+  <div class="quiz-result" id="quizResult" style="display:none">
+    <div class="quiz-result-title" id="quizResultTitle"></div>
+    <div class="quiz-result-answer" id="quizResultAnswer"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav" id="navBar">
+  <button class="nav-btn" onclick="go(-1)">← Zurück</button>
+  <button class="nav-btn" id="replayBtn" onclick="replay()">🔊 Nochmal</button>
+  <button class="nav-btn" onclick="go(1)">Weiter →</button>
+</div>
+
+<!-- MANAGE -->
+<div id="manageSection" style="display:none;width:100%;max-width:540px">
+  <div class="manage-section">
+    <div class="manage-label" style="color:var(--blue)">CSV Import</div>
+    <div class="csv-format">
+      Format: <code class="csv-code">phrase;beispiel;kategorie</code><br>
+      Trennzeichen: Semikolon · Kodierung: UTF-8
+    </div>
+    <div class="btn-row">
+      <button class="secondary-btn" style="color:var(--blue)" onclick="document.getElementById('csvFile').click()">📂 CSV hochladen</button>
+      <button class="secondary-btn" style="color:var(--muted)" onclick="downloadTemplate()">⬇ Vorlage</button>
+    </div>
+    <input type="file" id="csvFile" accept=".csv,.txt" style="display:none" onchange="handleCsv(event)" />
+    <div class="csv-msg" id="csvMsg"></div>
+  </div>
+
+  <div class="manage-section">
+    <div class="manage-label" style="color:var(--gold)">Manuell hinzufügen</div>
+    <input class="manage-input" id="newPhrase" placeholder="Phrase (z.B. responsible for) *" />
+    <input class="manage-input" id="newExample" placeholder="Beispielsatz auf Englisch" />
+    <input class="manage-input" id="newCategory" placeholder="Kategorie (z.B. Adverb, Präposition)" />
+    <select class="manage-select" id="newType">
+      <option value="preposition">Präposition</option>
+      <option value="adverb">Adverb</option>
+    </select>
+    <button class="primary-btn" onclick="addPhrase()">+ Hinzufügen</button>
+  </div>
+
+  <div class="list-label" id="listLabel"></div>
+  <div class="phrase-list" id="phraseList"></div>
+</div>
+
+<div class="footer" id="footer"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const DEFAULT_PHRASES = [
+  {id:1,phrase:"responsible for",example:"Who is responsible for this decision?",category:"Präposition",type:"preposition"},
+  {id:2,phrase:"depend on",example:"The result depends on many factors.",category:"Präposition",type:"preposition"},
+  {id:3,phrase:"according to",example:"According to the report, sales increased.",category:"Präposition",type:"preposition"},
+  {id:4,phrase:"interested in",example:"She is very interested in autonomous vehicles.",category:"Präposition",type:"preposition"},
+  {id:5,phrase:"capable of",example:"Self-driving cars are capable of detecting obstacles.",category:"Präposition",type:"preposition"},
+  {id:6,phrase:"aware of",example:"Are you aware of the legal implications?",category:"Präposition",type:"preposition"},
+  {id:7,phrase:"result in",example:"This policy could result in significant job losses.",category:"Präposition",type:"preposition"},
+  {id:8,phrase:"in terms of",example:"In terms of safety, autonomous cars show great promise.",category:"Präposition",type:"preposition"},
+  {id:9,phrase:"due to",example:"The delay was due to technical difficulties.",category:"Präposition",type:"preposition"},
+  {id:10,phrase:"in addition to",example:"In addition to the cost, we must consider the risks.",category:"Präposition",type:"preposition"},
+  {id:11,phrase:"with regard to",example:"With regard to safety, further testing is required.",category:"Präposition",type:"preposition"},
+  {id:12,phrase:"on behalf of",example:"She spoke on behalf of the entire team.",category:"Präposition",type:"preposition"},
+  {id:13,phrase:"nevertheless",example:"The technology is expensive. Nevertheless, many companies are investing heavily.",category:"Adverb",type:"adverb"},
+  {id:14,phrase:"furthermore",example:"The system reduces accidents. Furthermore, it improves traffic flow.",category:"Adverb",type:"adverb"},
+  {id:15,phrase:"consequently",example:"The software failed. Consequently, the project was delayed.",category:"Adverb",type:"adverb"},
+  {id:16,phrase:"however",example:"The idea sounds promising. However, the costs remain unclear.",category:"Adverb",type:"adverb"},
+  {id:17,phrase:"therefore",example:"The data is incomplete. Therefore, we cannot draw conclusions yet.",category:"Adverb",type:"adverb"},
+  {id:18,phrase:"moreover",example:"The car drives itself. Moreover, it parks automatically.",category:"Adverb",type:"adverb"},
+  {id:19,phrase:"nonetheless",example:"There are risks involved. Nonetheless, the benefits outweigh them.",category:"Adverb",type:"adverb"},
+  {id:20,phrase:"ultimately",example:"Ultimately, the decision lies with the government.",category:"Adverb",type:"adverb"},
+  {id:21,phrase:"in contrast",example:"Traditional cars require a driver. In contrast, autonomous vehicles operate independently.",category:"Adverb",type:"adverb"},
+  {id:22,phrase:"as a result",example:"Traffic was reduced. As a result, pollution levels dropped significantly.",category:"Adverb",type:"adverb"},
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let phrases = JSON.parse(localStorage.getItem("pt_v4") || "null") || DEFAULT_PHRASES;
+let scores  = JSON.parse(localStorage.getItem("pt_scores_v4") || "{}");
+let mode = "learn";
+let currentIdx = 0;
+let filterCat = "Alle";
+let autoPlay = false;
+let streak = 0;
+let isPlaying = false;
+let bestVoice = null;
+let voicesReady = false;
+let autoTimer = null;
+
+// ─── VOICE ───────────────────────────────────────────────────────────────────
+const VOICE_PRIORITY = [
+  v => v.name === "Daniel (Enhanced)"  && v.lang.startsWith("en-GB"),
+  v => v.name === "Martha (Enhanced)"  && v.lang.startsWith("en-GB"),
+  v => v.name.includes("Enhanced")     && v.lang.startsWith("en-GB"),
+  v => v.name.includes("Enhanced")     && v.lang.startsWith("en"),
+  v => v.name === "Daniel"             && v.lang.startsWith("en-GB"),
+  v => v.name === "Martha"             && v.lang.startsWith("en-GB"),
+  v => v.name === "Google UK English Female",
+  v => v.name === "Google UK English Male",
+  v => v.name.includes("Google")       && v.lang.startsWith("en-GB"),
+  v => v.name.includes("Google")       && v.lang.startsWith("en"),
+  v => v.name === "Samantha (Enhanced)"&& v.lang.startsWith("en"),
+  v => v.name === "Samantha"           && v.lang.startsWith("en"),
+  v => v.lang === "en-GB",
+  v => v.lang.startsWith("en-GB"),
+  v => v.lang.startsWith("en"),
+];
+
+function loadVoices() {
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return;
+  voicesReady = true;
+  for (const test of VOICE_PRIORITY) {
+    const found = voices.find(test);
+    if (found) { bestVoice = found; break; }
+  }
+  const info = document.getElementById("voiceInfo");
+  const tip  = document.getElementById("iosTip");
+  if (bestVoice) {
+    const enhanced = bestVoice.name.includes("Enhanced") || bestVoice.name.includes("Google");
+    info.innerHTML = `🎙 ${bestVoice.name}${enhanced ? '<span class="voice-enhanced">✓ Enhanced</span>' : ''}`;
+    if (!enhanced) tip.style.display = "block";
+  }
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+function speakSeq(items, onDone) {
+  speechSynthesis.cancel();
+  let i = 0;
+  function next() {
+    if (i >= items.length) { if (onDone) onDone(); return; }
+    const { text, delay = 0, rate = 0.88 } = items[i++];
+    setTimeout(() => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-GB"; u.rate = rate; u.pitch = 1.0;
+      if (bestVoice) u.voice = bestVoice;
+      u.onend = next; u.onerror = next;
+      speechSynthesis.speak(u);
+    }, delay);
+  }
+  next();
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function save() {
+  localStorage.setItem("pt_v4", JSON.stringify(phrases));
+  localStorage.setItem("pt_scores_v4", JSON.stringify(scores));
+}
+
+function filtered() {
+  return filterCat === "Alle" ? phrases : phrases.filter(p => p.category === filterCat);
+}
+
+function current() {
+  const f = filtered();
+  return f.length ? f[currentIdx % f.length] : null;
+}
+
+function typeColor(type) {
+  return type === "adverb" ? "var(--blue)" : "var(--gold)";
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightPhrase(text, phrase) {
+  const color = typeColor(current()?.type);
+  return text.replace(new RegExp(`(${escapeRegex(phrase)})`, "gi"),
+    `<mark style="background:${color}30;color:${color};font-style:normal;border-radius:3px;padding:1px 3px">$1</mark>`);
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const f = filtered();
+  const c = current();
+  const idx = f.length ? currentIdx % f.length : 0;
+  const color = c ? typeColor(c.type) : "var(--gold)";
+  const pct = f.length ? ((idx + 1) / f.length * 100) : 0;
+
+  // Streak
+  document.getElementById("streakInfo").textContent = streak > 1 ? `🔥 ${streak} richtige in Folge` : "";
+
+  // Filters
+  const cats = ["Alle", ...new Set(phrases.map(p => p.category).filter(Boolean))];
+  document.getElementById("filters").innerHTML = cats.map(cat => {
+    const active = cat === filterCat;
+    const col = active ? color : "var(--dim)";
+    return `<button class="filter-btn" onclick="setFilter('${cat}')"
+      style="border:1px solid ${active ? color : 'var(--border)'};
+             background:${active ? color + '22' : 'transparent'};
+             color:${col}">${cat}</button>`;
+  }).join("");
+
+  document.getElementById("footer").textContent = `${phrases.length} Phrasen gespeichert`;
+
+  // Cards visibility
+  document.getElementById("learnCard").style.display   = mode === "learn"  ? "block" : "none";
+  document.getElementById("quizCard").style.display    = mode === "quiz"   ? "block" : "none";
+  document.getElementById("navBar").style.display      = mode !== "manage" ? "flex"  : "none";
+  document.getElementById("manageSection").style.display = mode === "manage" ? "block" : "none";
+
+  if (!c) return;
+
+  // ── LEARN ──
+  if (mode === "learn") {
+    document.getElementById("learnProgress").textContent = `${idx + 1} / ${f.length}`;
+    document.getElementById("learnType").style.color = color;
+    document.getElementById("learnType").textContent = c.type === "adverb" ? "Adverb" : "Präposition";
+    document.getElementById("learnBar").style.width = pct + "%";
+    document.getElementById("learnBar").style.background = color;
+    document.getElementById("learnCat").style.color = color;
+    document.getElementById("learnCat").textContent = c.category;
+    document.getElementById("learnPhrase").textContent = c.phrase;
+    document.getElementById("autoPlayBtn").style.color = autoPlay ? color : "var(--dim)";
+    document.getElementById("autoPlayBtn").textContent = autoPlay ? "⏸ Auto-Play – stoppen" : "▶ Auto-Play (11 Sek.)";
+    const rb = document.getElementById("replayBtn");
+    rb.style.borderColor = color;
+    rb.style.color = isPlaying ? "var(--dim)" : color;
+  }
+
+  // ── QUIZ ──
+  if (mode === "quiz") {
+    const sc = scores[c.id] || 0;
+    document.getElementById("quizProgress").textContent = `${idx + 1} / ${f.length}`;
+    document.getElementById("quizScore").style.color = sc > 0 ? "var(--green)" : sc < 0 ? "var(--red)" : "var(--dim)";
+    document.getElementById("quizScore").textContent = sc > 0 ? `+${sc} ✓` : sc < 0 ? `${sc} ✗` : "–";
+    document.getElementById("quizBar").style.width = pct + "%";
+    document.getElementById("quizBar").style.background = color;
+    document.getElementById("quizSubmit").style.background = color;
+    const blank = c.example.replace(new RegExp(escapeRegex(c.phrase), "gi"), "___________");
+    document.getElementById("quizSentence").textContent = blank;
+  }
+
+  // ── MANAGE ──
+  if (mode === "manage") {
+    document.getElementById("listLabel").textContent = `${phrases.length} Phrasen gespeichert`;
+    document.getElementById("phraseList").innerHTML = phrases.map(p => `
+      <div class="phrase-item">
+        <div>
+          <span class="phrase-item-name" style="color:${typeColor(p.type)}">${p.phrase}</span>
+          <span class="phrase-item-meta">${p.category} · ${scores[p.id] || 0} Punkte</span>
+        </div>
+        <button class="delete-btn" onclick="deletePhrase(${p.id})">✕</button>
+      </div>`).join("");
+  }
+}
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+function showBars(color) {
+  const heights = [3,5,8,6,4,7,5,3];
+  document.getElementById("audioBars").innerHTML = heights.map((h, i) =>
+    `<div class="bar" style="height:${h*2}px;background:${color};animation-delay:${i*0.08}s;animation-duration:${0.5+i*0.07}s"></div>`
+  ).join("");
+}
+
+function showDots() {
+  document.getElementById("audioBars").innerHTML = `<span class="bar-dots">· · ·</span>`;
+}
+
+function speakCard(c) {
+  if (!c || !voicesReady) return;
+  isPlaying = true;
+  document.getElementById("exampleBox").style.display = "none";
+  showBars(typeColor(c.type));
+  render();
+  speakSeq([
+    { text: c.phrase,   delay: 400,  rate: 0.78 },
+    { text: c.phrase,   delay: 1000, rate: 0.82 },
+    { text: c.example,  delay: 1400, rate: 0.88 },
+  ], () => {
+    isPlaying = false;
+    showDots();
+    document.getElementById("exampleBox").style.display = "block";
+    document.getElementById("exampleBox").innerHTML = highlightPhrase(c.example, c.phrase);
+    render();
+  });
+}
+
+function replay() {
+  if (isPlaying) return;
+  const c = current();
+  if (!c) return;
+  speakCard(c);
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function go(dir) {
+  speechSynthesis.cancel();
+  isPlaying = false;
+  showDots();
+  const f = filtered();
+  currentIdx = (currentIdx + dir + f.length) % f.length;
+  document.getElementById("exampleBox").style.display = "none";
+  document.getElementById("quizResult").style.display = "none";
+  document.getElementById("quizInputRow").style.display = "flex";
+  document.getElementById("quizInput").value = "";
+  render();
+  if (mode === "learn") speakCard(current());
+}
+
+// ─── MODE ────────────────────────────────────────────────────────────────────
+function setMode(m) {
+  speechSynthesis.cancel();
+  isPlaying = false;
+  showDots();
+  mode = m;
+  currentIdx = 0;
+  clearAutoPlay();
+  autoPlay = false;
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    t.classList.toggle("active", ["learn","quiz","manage"][i] === m);
+  });
+  document.getElementById("exampleBox").style.display = "none";
+  document.getElementById("quizResult").style.display = "none";
+  document.getElementById("quizInputRow").style.display = "flex";
+  document.getElementById("quizInput").value = "";
+  render();
+  if (m === "learn") setTimeout(() => speakCard(current()), 300);
+}
+
+// ─── FILTER ──────────────────────────────────────────────────────────────────
+function setFilter(cat) {
+  speechSynthesis.cancel();
+  isPlaying = false;
+  filterCat = cat;
+  currentIdx = 0;
+  document.getElementById("exampleBox").style.display = "none";
+  render();
+  if (mode === "learn") setTimeout(() => speakCard(current()), 300);
+}
+
+// ─── AUTO PLAY ───────────────────────────────────────────────────────────────
+function clearAutoPlay() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
+
+function toggleAutoPlay() {
+  autoPlay = !autoPlay;
+  clearAutoPlay();
+  if (autoPlay) {
+    autoTimer = setInterval(() => {
+      const f = filtered();
+      currentIdx = (currentIdx + 1) % f.length;
+      document.getElementById("exampleBox").style.display = "none";
+      render();
+      speakCard(current());
+    }, 11000);
+  }
+  render();
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+function checkQuiz() {
+  const c = current();
+  const input = document.getElementById("quizInput").value.trim();
+  if (!input || !c) return;
+  const ok = input.toLowerCase().includes(c.phrase.toLowerCase());
+  scores[c.id] = (scores[c.id] || 0) + (ok ? 1 : -1);
+  if (ok) streak++; else streak = 0;
+  save();
+
+  document.getElementById("quizInputRow").style.display = "none";
+  const res = document.getElementById("quizResult");
+  res.style.display = "block";
+  res.style.background = ok ? "#162416" : "#241616";
+  res.style.border = `1px solid ${ok ? "var(--green)" : "var(--red)"}`;
+  document.getElementById("quizResultTitle").textContent = ok ? "✓ Richtig!" : "✗ Leider falsch";
+  document.getElementById("quizResultAnswer").innerHTML = `Antwort: <strong style="color:${typeColor(c.type)}">${c.phrase}</strong>`;
+
+  if (ok) {
+    speakSeq([
+      { text: "Correct!", rate: 0.9 },
+      { text: c.phrase, delay: 700, rate: 0.78 },
+      { text: c.example, delay: 1400, rate: 0.88 },
+    ]);
+  } else {
+    speakSeq([
+      { text: "The answer is: " + c.phrase, rate: 0.85 },
+      { text: c.example, delay: 1400, rate: 0.88 },
+    ]);
+  }
+  render();
+}
+
+// ─── MANAGE ──────────────────────────────────────────────────────────────────
+function addPhrase() {
+  const phrase = document.getElementById("newPhrase").value.trim();
+  if (!phrase) return;
+  phrases.push({
+    id: Date.now(),
+    phrase,
+    example: document.getElementById("newExample").value.trim(),
+    category: document.getElementById("newCategory").value.trim() || "Import",
+    type: document.getElementById("newType").value,
+  });
+  save();
+  document.getElementById("newPhrase").value = "";
+  document.getElementById("newExample").value = "";
+  document.getElementById("newCategory").value = "";
+  render();
+}
+
+function deletePhrase(id) {
+  phrases = phrases.filter(p => p.id !== id);
+  save(); render();
+}
+
+function handleCsv(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const lines = ev.target.result.split("\n").filter(l => l.trim());
+    const imported = lines
+      .filter((l, i) => !(i === 0 && l.toLowerCase().includes("phrase")))
+      .map((line, i) => {
+        const parts = line.split(";").map(p => p.trim().replace(/^"|"$/g, ""));
+        if (!parts[0]) return null;
+        return { id: Date.now() + i, phrase: parts[0], example: parts[1] || "", category: parts[2] || "Import", type: parts[3] || "preposition" };
+      }).filter(Boolean);
+    const msg = document.getElementById("csvMsg");
+    if (!imported.length) {
+      msg.style.color = "var(--red)";
+      msg.textContent = "Keine gültigen Einträge. Format: phrase;beispiel;kategorie";
+      return;
+    }
+    phrases.push(...imported);
+    save(); render();
+    msg.style.color = "var(--green)";
+    msg.textContent = `✓ ${imported.length} Phrasen importiert!`;
+    setTimeout(() => msg.textContent = "", 3000);
+  };
+  reader.readAsText(file, "UTF-8");
+  e.target.value = "";
+}
+
+function downloadTemplate() {
+  const c = "phrase;beispiel;kategorie;type\nresponsible for;She is responsible for the project.;Präposition;preposition\nhowever;It is good. However, costs are high.;Adverb;adverb\n";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8;" }));
+  a.download = "phrasen_vorlage.csv"; a.click();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+render();
+setTimeout(() => {
+  if (voicesReady) speakCard(current());
+  else {
+    speechSynthesis.onvoiceschanged = () => { loadVoices(); speakCard(current()); };
+  }
+}, 500);
+</script>
+</body>
+</html>
